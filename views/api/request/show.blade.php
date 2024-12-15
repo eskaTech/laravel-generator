@@ -8,9 +8,7 @@ use {{ $config->namespaces->model }}\{{ $config->modelNames->name }};
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Foundation\Http\FormRequest;
 
-@if(isset($createSwaggerHeaderDocs)){!! $createSwaggerHeaderDocs  !!}@endif
-
-class Create{{ $config->modelNames->name }}APIRequest extends FormRequest
+class Show{{ $config->modelNames->name }}APIRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -19,7 +17,7 @@ class Create{{ $config->modelNames->name }}APIRequest extends FormRequest
      */
     public function authorize()
     {
-        return Gate::allows('create', {{ $config->modelNames->name }}::class);
+        return Gate::allows('show',  $this->{{ $config->modelNames->camel }});
     }
 
     /**
@@ -30,9 +28,6 @@ class Create{{ $config->modelNames->name }}APIRequest extends FormRequest
     public function rules()
     {
         return [
-            {!! $createRules !!}
         ];
     }
-
-    @if(isset($createSwaggerPropertiesDocs)){!! $createSwaggerPropertiesDocs  !!}@endif
 }

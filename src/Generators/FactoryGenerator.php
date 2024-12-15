@@ -4,7 +4,7 @@ namespace InfyOm\Generator\Generators;
 
 use Illuminate\Support\Str;
 use InfyOm\Generator\Utils\GeneratorFieldsInputUtil;
-
+use InfyOm\Generator\Generators\API\APIRequestGenerator;
 class FactoryGenerator extends BaseGenerator
 {
     private string $fileName;
@@ -66,12 +66,17 @@ class FactoryGenerator extends BaseGenerator
     {
         $fields = [];
 
-        //get model validation rules
-        $class = $this->config->namespaces->model.'\\'.$this->config->modelNames->name;
+        // get validation rules
+        $requestGenerator = new APIRequestGenerator();
+        $generatedRules = $requestGenerator->generateRules();
         $rules = [];
-        if (class_exists($class)) {
-            $rules = $class::$rules;
+        foreach ($generatedRules as $rule) {
+            list($key, $value) = $this->cleanRule($rule);
+            $rules[$key] = $value;
         }
+        // Explode rules string to array
+
+
         $relations = array_keys($this->relations);
 
         foreach ($this->config->fields as $field) {
@@ -79,7 +84,7 @@ class FactoryGenerator extends BaseGenerator
                 continue;
             }
 
-            $fieldData = "'".$field->name."' => ".'$this->faker->';
+            $fieldData = "'" . $field->name . "' => " . '$this->faker->';
             $rule = null;
             if (isset($rules[$field->name])) {
                 $rule = $rules[$field->name];
@@ -139,8 +144,8 @@ class FactoryGenerator extends BaseGenerator
                     $fakerData = "date('H:i:s')";
                     break;
                 case 'enum':
-                    $fakerData = 'randomElement('.
-                        GeneratorFieldsInputUtil::prepareValuesArrayStr($field->htmlValues).
+                    $fakerData = 'randomElement(' .
+                        GeneratorFieldsInputUtil::prepareValuesArrayStr($field->htmlValues) .
                         ')';
                     break;
                 default:
@@ -156,7 +161,7 @@ class FactoryGenerator extends BaseGenerator
             $fields[] = $fieldData;
         }
 
-        return implode(','.infy_nl_tab(1, 3), $fields);
+        return implode(',' . infy_nl_tab(1, 3), $fields);
     }
 
     /**
@@ -273,4 +278,15 @@ class FactoryGenerator extends BaseGenerator
             $this->config->commandComment('Factory file deleted: '.$this->fileName);
         }
     }
+
+    protected function cleanRule($rule)
+    {
+        $rule = str_replace(["'", '"'], '', $rule);
+        list($key, $value) = explode('=>', $rule, 2);
+        $key = trim($key);
+        $value = trim($value);
+        $value = implode('|', array_unique(explode('|', $value)));
+        return [$key, $value];
+    }
+
 }

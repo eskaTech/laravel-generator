@@ -39,16 +39,17 @@ class ModelGenerator extends BaseGenerator
     public function variables(): array
     {
         return [
-            'fillables'        => implode(','.infy_nl_tab(1, 2), $this->generateFillables()),
-            'casts'            => implode(','.infy_nl_tab(1, 2), $this->generateCasts()),
-            'rules'            => implode(','.infy_nl_tab(1, 2), $this->generateRules()),
-            'swaggerDocs'      => $this->fillDocs(),
+            'fillables' => implode(',' . infy_nl_tab(1, 2), $this->generateFillables()),
+            'casts' => implode(',' . infy_nl_tab(1, 2), $this->generateCasts()),
+            'rules' => implode(',' . infy_nl_tab(1, 2), $this->generateRules()),
+            // 'swaggerDocs' => $this->fillDocs(),
+            'jsDocs' => $this->generatePhpDocs(),
             'customPrimaryKey' => $this->customPrimaryKey(),
-            'customCreatedAt'  => $this->customCreatedAt(),
-            'customUpdatedAt'  => $this->customUpdatedAt(),
+            'customCreatedAt' => $this->customCreatedAt(),
+            'customUpdatedAt' => $this->customUpdatedAt(),
             'customSoftDelete' => $this->customSoftDelete(),
-            'relations'        => $this->generateRelations(),
-            'timestamps'       => config('laravel_generator.timestamps.enabled', true),
+            'relations' => $this->generateRelations(),
+            'timestamps' => config('laravel_generator.timestamps.enabled', true),
         ];
     }
 
@@ -139,7 +140,7 @@ class ModelGenerator extends BaseGenerator
 
         $requiredFields = '{'.implode(',', $requiredFields).'}';
 
-        return view('swagger-generator::model.model', [
+        return (string) view('swagger-generator::model.model', [
             'requiredFields' => $requiredFields,
             'properties'     => implode(','.infy_nl().' ', $properties),
         ]);
@@ -337,5 +338,112 @@ class ModelGenerator extends BaseGenerator
         if ($this->rollbackFile($this->path, $this->fileName)) {
             $this->config->commandComment('Model file deleted: '.$this->fileName);
         }
+    }
+
+
+    /**
+     * Generates PHPDoc for model relations.
+     *
+     * @return string
+     */
+    public function generatePhpDocs()
+    {
+        $jsDoc = "/**\n";
+
+        $jsDoc .= " * @package App\Models\n";
+
+        $jsDoc .= " * \n";
+
+
+        foreach ($this->config->fields as $field) {
+            $type = $this->mapDbTypeToJSType($field->dbType);
+            $jsDoc .= " * @property $type \${$field->name}\n";
+        }
+        $jsDoc .= " * \n";
+
+        // Add relation docs
+        $jsDoc .= $this->generateRelationsDocs();
+
+        $jsDoc .= " * \n";
+        $jsDoc .= " * @mixin \Eloquent\n";
+        $jsDoc .= " */";
+
+        return $jsDoc;
+    }
+
+    private function mapDbTypeToJSType($dbType)
+    {
+        switch (true) {
+            case str_contains($dbType, 'bigInteger'):
+            case str_contains($dbType, 'integer'):
+            case str_contains($dbType, 'smallInteger'):
+            case str_contains($dbType, 'tinyInteger'):
+            case str_contains($dbType, 'mediumInteger'):
+            case str_contains($dbType, 'float'):
+            case str_contains($dbType, 'double'):
+            case str_contains($dbType, 'decimal'):
+                return 'number';
+            case str_contains($dbType, 'boolean'):
+                return 'boolean';
+            case str_contains($dbType, 'datetime'):
+            case str_contains($dbType, 'timestamp'):
+            case str_contains($dbType, 'date'):
+                return '\Carbon\Carbon';
+            case str_contains($dbType, 'time'):
+            case str_contains($dbType, 'year'):
+                return 'string';
+            case str_contains($dbType, 'char'):
+            case str_contains($dbType, 'string'):
+            case str_contains($dbType, 'text'):
+            case str_contains($dbType, 'mediumText'):
+            case str_contains($dbType, 'longText'):
+            case str_contains($dbType, 'json'):
+            case str_contains($dbType, 'jsonb'):
+            case str_contains($dbType, 'binary'):
+            case str_contains($dbType, 'uuid'):
+            case str_contains($dbType, 'enum'):
+            case str_contains($dbType, 'set'):
+                return 'string';
+            default:
+                return 'mixed';
+        }
+    }
+
+    /**
+     * Generates PHPDoc for model relations.
+     *
+     * @return string
+     */
+    private function generateRelationsDocs()
+    {
+        $relations = $this->config->relations;
+        $relationDocs = '';
+
+        foreach ($relations as $relation) {
+            $singularRelationName = (!empty($relation->relationName)) ? $relation->relationName : Str::snake(class_basename($relation->inputs[0]));
+            $pluralRelationName = (!empty($relation->relationName)) ? $relation->relationName : Str::snake(Str::plural(class_basename($relation->inputs[0])));
+
+            switch ($relation->type) {
+                case '1t1':
+                    $relationDocs .= " * @property-read {$relation->inputs[0]} \${$singularRelationName}\n";
+                    break;
+                case '1tm':
+                case 'mtm':
+                case 'hmt':
+                    $relationDocs .= " * @property-read Collection|{$relation->inputs[0]}[] \${$pluralRelationName}\n";
+                    break;
+                case 'mt1':
+                    if (!empty($relation->relationName)) {
+                        $singularRelationName = $relation->relationName;
+                    } elseif (isset($relation->inputs[1])) {
+                        $singularRelationName = Str::snake(str_replace('_id', '', strtolower($relation->inputs[1])));
+                    }
+                    $relationDocs .= " * @property {$relation->inputs[0]} \${$singularRelationName}\n";
+                    break;
+                default:
+                    break;
+            }
+        }
+        return $relationDocs;
     }
 }

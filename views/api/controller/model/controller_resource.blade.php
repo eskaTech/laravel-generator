@@ -4,39 +4,48 @@
 
 namespace {{ $config->namespaces->apiController }};
 
+use App\Http\Resources\v1\Collections\IndexResourceCollection;
 use {{ $config->namespaces->apiRequest }}\Create{{ $config->modelNames->name }}APIRequest;
 use {{ $config->namespaces->apiRequest }}\Update{{ $config->modelNames->name }}APIRequest;
+use {{ $config->namespaces->apiRequest }}\Index{{ $config->modelNames->name }}APIRequest;
+use {{ $config->namespaces->apiRequest }}\Show{{ $config->modelNames->name }}APIRequest;
+use {{ $config->namespaces->apiRequest }}\Destroy{{ $config->modelNames->name }}APIRequest;
 use {{ $config->namespaces->model }}\{{ $config->modelNames->name }};
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use {{ $config->namespaces->app }}\Http\Controllers\AppBaseController;
 use {{ $config->namespaces->apiResource }}\{{ $config->modelNames->name }}Resource;
+use Spatie\QueryBuilder\QueryBuilder;
+use Spatie\QueryBuilder\AllowedFilter;
+use App\Queries\Filters\FuzzyFilter;
 
 {!! $docController !!}
 class {{ $config->modelNames->name }}APIController extends AppBaseController
 {
     {!! $docIndex !!}
-    public function index(Request $request): JsonResponse
+    public function index(Index{{ $config->modelNames->name }}APIRequest $request): JsonResponse
     {
-        $query = {{ $config->modelNames->name }}::query();
+        $data = QueryBuilder::for({{ $config->modelNames->name }}::class)
+            ->allowedFilters(
+                [
+                    AllowedFilter::custom(
+                        'search',
+                        new FuzzyFilter(
+                            {!! $fuzzyFields !!}
+                        ),
+                    ),
+                    AllowedFilter::exact('{{ $config->primaryName }}', '{{ $config->tableName }}.{{ $config->primaryName }}'),
+                ]
+            )
+            ->select('{{ $config->tableName }}.*')
+            ->defaultSort(Index{{ $config->modelNames->name }}APIRequest::$defaultSort)
+            ->allowedSorts(Index{{ $config->modelNames->name }}APIRequest::$allowedSorts)
+            ->allowedIncludes(Index{{ $config->modelNames->name }}APIRequest::$allowedIncludes)
+            ->jsonPaginate();
 
-        if ($request->get('skip')) {
-            $query->skip($request->get('skip'));
-        }
-        if ($request->get('limit')) {
-            $query->limit($request->get('limit'));
-        }
+        $collection = new IndexResourceCollection($data, {{ $config->modelNames->name }}Resource::class);
 
-        ${{ $config->modelNames->camelPlural }} = $query->get();
-
-@if($config->options->localized)
-        return $this->sendResponse(
-            {{ $config->modelNames->name }}Resource::collection(${{ $config->modelNames->camelPlural }}),
-            __('messages.retrieved', ['model' => __('models/{{ $config->modelNames->camelPlural }}.plural')])
-        );
-@else
-        return $this->sendResponse({{ $config->modelNames->name }}Resource::collection(${{ $config->modelNames->camelPlural }}), '{{ $config->modelNames->humanPlural }} retrieved successfully');
-@endif
+        return $collection->toResponse($request);
     }
 
     {!! $docStore !!}
@@ -58,11 +67,8 @@ class {{ $config->modelNames->name }}APIController extends AppBaseController
     }
 
     {!! $docShow !!}
-    public function show($id): JsonResponse
+    public function show({{ $config->modelNames->name }} ${{ $config->modelNames->camel }}, Show{{ $config->modelNames->name }}APIRequest $request): JsonResponse
     {
-        /** @var {{ $config->modelNames->name }} ${{ $config->modelNames->camel }} */
-        ${{ $config->modelNames->camel }} = {{ $config->modelNames->name }}::find($id);
-
         if (empty(${{ $config->modelNames->camel }})) {
 @if($config->options->localized)
             return $this->sendError(
@@ -84,12 +90,9 @@ class {{ $config->modelNames->name }}APIController extends AppBaseController
     }
 
     {!! $docUpdate !!}
-    public function update($id, Update{{ $config->modelNames->name }}APIRequest $request): JsonResponse
+    public function update({{ $config->modelNames->name }} ${{ $config->modelNames->camel }}, Update{{ $config->modelNames->name }}APIRequest $request): JsonResponse
     {
-        /** @var {{ $config->modelNames->name }} ${{ $config->modelNames->camel }} */
-        ${{ $config->modelNames->camel }} = {{ $config->modelNames->name }}::find($id);
-
-        if (empty(${{ $config->modelNames->camel }})) {
+       if (empty(${{ $config->modelNames->camel }})) {
 @if($config->options->localized)
         return $this->sendError(
             __('messages.not_found', ['model' => __('models/{{ $config->modelNames->camelPlural }}.singular')])
@@ -113,11 +116,8 @@ class {{ $config->modelNames->name }}APIController extends AppBaseController
     }
 
     {!! $docDestroy !!}
-    public function destroy($id): JsonResponse
+    public function destroy({{ $config->modelNames->name }} ${{ $config->modelNames->camel }}, Destroy{{ $config->modelNames->name }}APIRequest $request): JsonResponse
     {
-        /** @var {{ $config->modelNames->name }} ${{ $config->modelNames->camel }} */
-        ${{ $config->modelNames->camel }} = {{ $config->modelNames->name }}::find($id);
-
         if (empty(${{ $config->modelNames->camel }})) {
 @if($config->options->localized)
             return $this->sendError(

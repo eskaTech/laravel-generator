@@ -6,6 +6,8 @@ namespace {{ $config->namespaces->apiResource }};
 
 use Illuminate\Http\Resources\Json\JsonResource;
 
+@if(isset($swaggerHeaderDocs)){!! $swaggerHeaderDocs  !!}@endif
+
 class {{ $config->modelNames->name }}Resource extends JsonResource
 {
     /**
@@ -20,4 +22,6 @@ class {{ $config->modelNames->name }}Resource extends JsonResource
             {!! $fields !!}
         ];
     }
+
+    @if(isset($swaggerPropertiesDocs)){!! $swaggerPropertiesDocs  !!}@endif
 }

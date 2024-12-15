@@ -3,6 +3,7 @@
 namespace InfyOm\Generator\Generators;
 
 use InfyOm\Generator\Common\GeneratorField;
+use Illuminate\Support\Str;
 
 class SwaggerGenerator
 {
@@ -88,5 +89,60 @@ class SwaggerGenerator
         }
 
         return ['fieldType' => $fieldType, 'fieldFormat' => $fieldFormat];
+    }
+
+    public static function generateRelationsTypes(array $relations): array
+    {
+        $relationTypes = [];
+
+        $relationTypes = array_merge($relationTypes, self::generateToOneRelationTypes($relations));
+        $relationTypes = array_merge($relationTypes, self::generateToManyRelationTypes($relations));
+
+        return $relationTypes;
+    }
+
+    public static function generateToOneRelationTypes(array $relations): array
+    {
+        $relationTypes = [];
+
+        foreach ($relations as $relation) {
+            if (in_array($relation->type, ['1t1', 'mt1'])) {
+                $relationName = $relation->relationName ?? Str::snake(class_basename($relation->inputs[0]));
+                if (!empty($relation->relationName)) {
+                    $relationName = $relation->relationName;
+                } elseif (isset($relation->inputs[1])) {
+                    $relationName = Str::snake(str_replace('_id', '', strtolower($relation->inputs[1])));
+                }
+                $relationTypes[] = [
+                    'fieldName' => $relationName,
+                    'resourceName' => $relation->inputs[0],
+                    'readOnly' => 'true',
+                    'nullable' => 'false',
+                    'description' => 'The relation with ' . $relation->inputs[0] . ' resource, if included.'
+                ];
+            }
+        }
+
+        return $relationTypes;
+    }
+
+    public static function generateToManyRelationTypes(array $relations): array
+    {
+        $relationTypes = [];
+
+        foreach ($relations as $relation) {
+            if (in_array($relation->type, ['1tm', 'mtm', 'hmt'])) {
+                $relationName = $relation->relationName ?? Str::snake(Str::plural(class_basename($relation->inputs[0])));
+                $relationTypes[] = [
+                    'fieldName' => $relationName,
+                    'resourceItemsName' => $relation->inputs[0],
+                    'readOnly' => 'true',
+                    'nullable' => 'false',
+                    'description' => 'The relation with all ' . $relation->inputs[0] . ' resources, if included.'
+                ];
+            }
+        }
+
+        return $relationTypes;
     }
 }

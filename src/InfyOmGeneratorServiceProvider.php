@@ -39,28 +39,27 @@ use InfyOm\Generator\Generators\Scaffold\RoutesGenerator;
 use InfyOm\Generator\Generators\Scaffold\ViewGenerator;
 use InfyOm\Generator\Generators\SeederGenerator;
 
-class InfyOmGeneratorServiceProvider extends ServiceProvider
-{
+class InfyOmGeneratorServiceProvider extends ServiceProvider {
     /**
      * Bootstrap the application services.
      *
      * @return void
      */
-    public function boot()
-    {
+    public function boot() {
         if ($this->app->runningInConsole()) {
-            $configPath = __DIR__.'/../config/laravel_generator.php';
+            $configPath = __DIR__ . '/../config/laravel_generator.php';
             $this->publishes([
                 $configPath => config_path('laravel_generator.php'),
             ], 'laravel-generator-config');
 
             $this->publishes([
-                __DIR__.'/../views' => resource_path('views/vendor/laravel-generator'),
+                __DIR__ . '/../views' => resource_path('views/vendor/laravel-generator'),
             ], 'laravel-generator-templates');
         }
 
         $this->registerCommands();
-        $this->loadViewsFrom(__DIR__.'/../views', 'laravel-generator');
+        $this->loadViewsFrom(__DIR__ . '/../views', 'laravel-generator');
+        $this->loadViewsFrom(__DIR__ . '/../views/swagger-generator', 'swagger-generator');
 
         View::composer('*', function ($view) {
             $view->with(['config' => app(GeneratorConfig::class)]);
@@ -83,8 +82,7 @@ class InfyOmGeneratorServiceProvider extends ServiceProvider
         });
     }
 
-    private function registerCommands()
-    {
+    private function registerCommands() {
         if (!$this->app->runningInConsole()) {
             return;
         }
@@ -119,9 +117,8 @@ class InfyOmGeneratorServiceProvider extends ServiceProvider
      *
      * @return void
      */
-    public function register()
-    {
-        $this->mergeConfigFrom(__DIR__.'/../config/laravel_generator.php', 'laravel_generator');
+    public function register() {
+        $this->mergeConfigFrom(__DIR__ . '/../config/laravel_generator.php', 'laravel_generator');
 
         $this->app->singleton(GeneratorConfig::class, function () {
             return new GeneratorConfig();

@@ -33,6 +33,9 @@ class GeneratorConfig
     public $primaryName;
     public $connection;
 
+    public $schemaName;
+
+
     public function init()
     {
         $this->loadModelNames();
@@ -43,6 +46,7 @@ class GeneratorConfig
         $this->loadNamespaces();
         $this->prepareTable();
         $this->prepareOptions();
+        $this->loadSchemaName();
     }
 
     public static function addDynamicVariable(string $name, $value)
@@ -239,8 +243,10 @@ class GeneratorConfig
         $namespaces->apiTests = config('laravel_generator.namespace.api_test', 'Tests\APIs');
         $namespaces->repositoryTests = config('laravel_generator.namespace.repository_test', 'Tests\Repositories');
         $namespaces->tests = config('laravel_generator.namespace.tests', 'Tests');
+        $namespaces->apiRequest .= '\\' . $this->modelNames->name;
 
         $this->namespaces = $namespaces;
+        
     }
 
     public function prepareTable()
@@ -331,4 +337,28 @@ class GeneratorConfig
     {
         $this->command->info($message);
     }
+
+
+    public function loadSchemaName()
+    {
+        return $this->getSchemaName($this->modelNames->name);
+    }
+
+    public function getSchemaName($modelName): string
+    {
+        $schemaName = '';
+        if ($this->getOption('prefix')) {
+            $multiplePrefixes = explode('/', $this->getOption('prefix'));
+
+            // FOreach prefix, add it to the schema name
+            $schemaName .= implode('', array_map(function ($prefix) {
+                return Str::title($prefix) . '::';
+            }, $multiplePrefixes));
+        }
+
+        $schemaName .= $modelName;
+
+        return $schemaName;
+    }
+
 }

@@ -5,9 +5,12 @@
 namespace {{ $config->namespaces->apiRequest }};
 
 use {{ $config->namespaces->model }}\{{ $config->modelNames->name }};
-use InfyOm\Generator\Request\APIRequest;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Foundation\Http\FormRequest;
 
-class Update{{ $config->modelNames->name }}APIRequest extends APIRequest
+@if(isset($updateSwaggerHeaderDocs)){!! $updateSwaggerHeaderDocs  !!}@endif
+
+class Update{{ $config->modelNames->name }}APIRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -16,7 +19,7 @@ class Update{{ $config->modelNames->name }}APIRequest extends APIRequest
      */
     public function authorize()
     {
-        return true;
+        return Gate::allows('edit', $this->{{ $config->modelNames->camel }});
     }
 
     /**
@@ -26,8 +29,12 @@ class Update{{ $config->modelNames->name }}APIRequest extends APIRequest
      */
     public function rules()
     {
-        $rules = {{ $config->modelNames->name }}::$rules;
+        $rules = [
+            {!! $updateRules !!}
+        ];
         {!! $uniqueRules !!}
         return $rules;
     }
+
+    @if(isset($updateSwaggerPropertiesDocs)){!! $updateSwaggerPropertiesDocs  !!}@endif
 }

@@ -1,67 +1,51 @@
-<h1 align="center"><img src="https://assets.infyom.com/open-source/infyom-logo.png" alt="InfyOm"></h1>
+<h1 align="center">Laravel Generator - EskaFactory Fork</h1>
 
-InfyOm Laravel Generator
-==========================
+A fork of the InfyOm Laravel Generator, updated for Laravel 11 and customized to match EskaFactory's architecture patterns.
 
-[![Total Downloads](https://poser.pugx.org/infyomlabs/laravel-generator/downloads)](https://packagist.org/packages/infyomlabs/laravel-generator)
-[![Monthly Downloads](https://poser.pugx.org/infyomlabs/laravel-generator/d/monthly)](https://packagist.org/packages/infyomlabs/laravel-generator)
-[![Daily Downloads](https://poser.pugx.org/infyomlabs/laravel-generator/d/daily)](https://packagist.org/packages/infyomlabs/laravel-generator)
 [![License](https://poser.pugx.org/infyomlabs/laravel-generator/license)](https://packagist.org/packages/infyomlabs/laravel-generator)
 
-Generate Admin Panels CRUDs and APIs in Minutes with tons of other features and customizations with 3 different themes.
+## About
+
+This fork of the InfyOm Laravel Generator has been adapted by [EskaFactory](https://eskafactory.io) to:
+- Support Laravel 11
+- Implement EskaFactory's architectural patterns
+- Generate standardized CRUDs and APIs
+- Provide customized scaffolding aligned with our team's best practices
+
+## Installation
+
+```bash
+composer require eskafactory/laravel-generator
+```
+
+## Key Features
+
+- Full Laravel 11 compatibility
+- Customized CRUD generators
+- API scaffolding
+- Admin panel generation
+- Already includes Swagger
+- EskaFactory architectural patterns implementation
+- Extensive customization options
 
 ## Documentation
 
-Read [Documentation](https://www.infyom.com/open-source) for detailed installation steps and usage.
+For detailed installation steps and usage, please refer to our [documentation](link-to-your-docs).
 
-## Support Us
-
-We have created [14+ Laravel packages](https://github.com/InfyOmLabs) and invested a lot of resources into creating these all packages and maintaining them.
-
-You can support us by either sponsoring us or buying one of our paid products. Or help us by spreading the word about us on social platforms via tweets and posts.
-
-### Buy our Paid Products
-
-[![InfyGPT](https://assets.infyom.com/open-source/infygpt-inline.png)](https://bit.ly/infy-gpt)
-
-You can also check out our other paid products on [CodeCanyon](https://1.envato.market/BXAnR1).
-
-### Sponsors
-
-[Become a sponsor](https://opencollective.com/infyomlabs#sponsor) and get your logo on our README on Github with a link to your site.
-
-<a href="https://opencollective.com/infyomlabs#sponsor"><img src="https://opencollective.com/infyomlabs/sponsors.svg?width=890"></a>
-
-### Backers
-
-[Become a backer](https://opencollective.com/infyomlabs#backer) and get your image on our README on Github with a link to your site.
-
-<a href="https://opencollective.com/infyomlabs#backer"><img src="https://opencollective.com/infyomlabs/backers.svg?width=890"></a>
-
-### Follow Us
-
-- [Twitter](https://twitter.com/infyom)
-- [Facebook](https://www.facebook.com/infyom)
-- [LinkedIn](https://in.linkedin.com/company/infyom-technologies)
-- [Youtube](https://www.youtube.com/channel/UC8IvwfChD6i7Wp4yZp3tNsQ)
-- [Contact Us](https://infyom.com/contact-us)
-
-## Made with InfyOm Generator
-
-Also, Do not forget to add your website to [Made with InfyOm Generator List](https://github.com/InfyOmLabs/laravel-generator/blob/develop/made-with-generator.md) list.
-
-## Video Tutorials
-
-Checkout [Video Tutorials](https://github.com/shailesh-ladumor/infyom-laravel-generator-tutorial) - **By**: [Shailesh Ladumor](https://github.com/shailesh-ladumor)
-
-## Security
-
-If you discover any security-related issues, create an issue using the issue tracker.
+The original InfyOm documentation can be found [here](https://www.infyom.com/open-source).
 
 ## Credits
 
+This project is based on the work of:
 - [InfyOm Technologies](https://github.com/infyomlabs)
-- [All Contributors](../../contributors)
+- [All Original Contributors](../../contributors)
+
+Modified and maintained by:
+- [EskaFactory](https://eskafactory.io)
+
+## Security
+
+If you discover any security-related issues, please create an issue using the issue tracker.
 
 ## License
 

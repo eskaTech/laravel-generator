@@ -19,7 +19,21 @@ class APIControllerGenerator extends BaseGenerator
 
     public function variables(): array
     {
-        return array_merge([], $this->docsVariables());
+        $searchableFields = $this->getSearchableFields();
+        return array_merge([
+            'fuzzyFields' => "'" . implode("'," . infy_nl_tab(1, 7) . "'", $searchableFields) . "'",
+        ], $this->docsVariables());
+    }
+
+    public function getSearchableFields(): array
+    {
+        $searchableFields = [];
+        foreach ($this->config->fields as $field) {
+            if ($field->isSearchable) {
+                $searchableFields[] = $field->name;
+            }
+        }
+        return $searchableFields;
     }
 
     public function getViewName(): string

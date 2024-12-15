@@ -5,10 +5,13 @@
 namespace {{ $config->namespaces->model }};
 
 use Illuminate\Database\Eloquent\Model;
+use \Illuminate\Database\Eloquent\Collection;
 @if($config->options->softDelete) {{ 'use Illuminate\Database\Eloquent\SoftDeletes;' }}@endif
 @if($config->options->tests or $config->options->factory) {{ 'use Illuminate\Database\Eloquent\Factories\HasFactory;' }}@endif
 
-@if(isset($swaggerDocs)){!! $swaggerDocs  !!}@endif
+
+@if(isset($jsDocs)){!! $jsDocs  !!}@endif
+
 class {{ $config->modelNames->name }} extends Model
 {
 @if($config->options->softDelete) {{ infy_tab().'use SoftDeletes;' }}@endif
@@ -27,10 +30,6 @@ class {{ $config->modelNames->name }} extends Model
 
     protected $casts = [
         {!! $casts !!}
-    ];
-
-    public static array $rules = [
-        {!! $rules !!}
     ];
 
     {!! $relations !!}

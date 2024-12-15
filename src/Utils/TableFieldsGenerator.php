@@ -65,27 +65,48 @@ class TableFieldsGenerator
         $this->ignoredFields = $ignoredFields;
 
         if (!empty($connection)) {
-            $this->schemaManager = DB::connection($connection)->getDoctrineSchemaManager();
+            $connection = DB::connection($connection);
         } else {
-            $this->schemaManager = DB::getDoctrineSchemaManager();
+            $connection = DB::connection();
         }
+        
+        // Get the PDO connection and database config
+        $pdo = $connection->getPdo();
+        $dbConfig = $connection->getConfig();
+        
+        // Create Doctrine configuration with proper credentials
+        $connectionParams = [
+            'pdo' => $pdo,
+            'user' => $dbConfig['username'],
+            'password' => $dbConfig['password'],
+            'host' => $dbConfig['host'],
+            'dbname' => $dbConfig['database'],
+            'driver' => 'pdo_mysql',
+            'charset' => $dbConfig['charset'] ?? 'utf8mb4',
+        ];
 
-        $platform = $this->schemaManager->getDatabasePlatform();
+        $doctrineConnection = new \Doctrine\DBAL\Connection(
+            $connectionParams,
+            new \Doctrine\DBAL\Driver\PDO\MySQL\Driver()
+        );
+        
+        $this->schemaManager = $doctrineConnection->createSchemaManager();
+
+        // Get platform from connection instead of schema manager
+        $platform = $doctrineConnection->getDatabasePlatform();
         $defaultMappings = [
             'enum' => 'string',
             'json' => 'text',
             'bit'  => 'boolean',
         ];
 
-//        $this->tableDetails = $this->schemaManager->listTableDetails($this->tableName);
-
         $mappings = config('laravel_generator.from_table.doctrine_mappings', []);
         $mappings = array_merge($mappings, $defaultMappings);
         foreach ($mappings as $dbType => $doctrineType) {
             $platform->registerDoctrineTypeMapping($dbType, $doctrineType);
         }
-        // Added
-        $this->tableDetails = $this->schemaManager->listTableDetails($this->tableName);
+
+        $this->tableDetails = $this->schemaManager->introspectTable($this->tableName);
 
         $columns = $this->schemaManager->listTableColumns($tableName);
 
@@ -107,7 +128,7 @@ class TableFieldsGenerator
     public function prepareFieldsFromTable()
     {
         foreach ($this->columns as $column) {
-            $type = $column->getType()->getName();
+            $type = $column->getType()->getTypeRegistry()->lookupName($column->getType());
 
             switch ($type) {
                 case 'integer':
@@ -176,7 +197,7 @@ class TableFieldsGenerator
      */
     public function getPrimaryKeyOfTable($tableName)
     {
-        $column = $this->schemaManager->listTableDetails($tableName)->getPrimaryKey();
+        $column = $this->schemaManager->introspectTable($tableName)->getPrimaryKey();
 
         return $column ? $column->getColumns()[0] : '';
     }
